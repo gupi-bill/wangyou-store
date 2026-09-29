@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>忘忧小卖部</title>
+<meta name="description" content="一家不打烊的小卖部。里面有用不完的深夜噪音、转不停的万花筒、一台不负责任的老虎机，还有几封你暂时不该拆的信。">
+<meta name="theme-color" content="#0b0d14">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏮</text></svg>">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/apps.css">
+<script>
+/* 早起的看门狗：出错要让人看见，别留一片白 */
+window.__mzErr = function (msg) {
+  try {
+    var b = document.createElement('div');
+    b.style.cssText = 'position:fixed;left:12px;right:12px;bottom:12px;z-index:9999;background:#3a1520;' +
+      'border:1px solid #e88ba0;color:#f2ece1;padding:10px 14px;border-radius:10px;' +
+      'font:12px/1.5 ui-monospace,monospace;box-shadow:0 8px 30px rgba(0,0,0,.5);white-space:pre-wrap';
+    b.textContent = '⚠ ' + msg;
+    document.body.appendChild(b);
+  } catch (e) {}
+};
+window.addEventListener('error', function (e) {
+  if (e && e.message && /ResizeObserver/.test(e.message)) return;
+  window.__mzErr((e.message || 'unknown') + '\n  ' + ((e.filename || '').split('/').pop() + ':' + (e.lineno || '?')));
+});
+</script>
+</head>
+<body>
+
+<div class="backdrop" aria-hidden="true"></div>
+<div class="lamp-orb" aria-hidden="true"></div>
+<div class="lamp-orb b" aria-hidden="true"></div>
+
+<a class="skip mono" href="#view-home">跳到内容</a>
+
+<header class="nav">
+  <a class="brand" href="#/home" aria-label="忘忧小卖部 首页">
+    <span class="mark" aria-hidden="true">🏮</span>
+    <span>忘忧小卖部</span>
+    <small>never closed</small>
+  </a>
+  <nav class="nav-links" aria-label="主导航">
+    <a href="#/home"      data-route="home">门口</a>
+    <a href="#/radio"     data-route="radio">深夜电台</a>
+    <a href="#/kaleido"   data-route="kaleido">万花筒</a>
+    <a href="#/fate"      data-route="fate">命运老虎机</a>
+    <a href="#/slack"     data-route="slack">拖延统计</a>
+    <a href="#/letter"    data-route="letter">给未来写信</a>
+    <a href="#/archive"   data-route="archive">档案室</a>
+    <a href="#/about"     data-route="about">关于</a>
+  </nav>
+</header>
+
+<noscript>
+  <div style="max-width:640px;margin:14vh auto;padding:0 24px;text-align:center">
+    <div style="font-size:52px">🕯</div>
+    <h1 style="font-size:28px;margin:.4em 0">这家店需要 JavaScript 开门</h1>
+    <p style="color:#cfc7ba;line-height:1.8">
+      不是所有东西都能用纸做出来——这里的声音是实时算出来的，图案是现场画的，
+      记录也是当场存在你浏览器里的。<br>
+      把浏览器的 JavaScript 打开，再来一次。灯给你留着。
+    </p>
+  </div>
+</noscript>
+
+<main class="shell" id="main">
+
+  <!-- ============ 门口 ============ -->
+  <section class="view" id="view-home" aria-labelledby="home-h"></section>
+
+  <!-- ============ 深夜电台 ============ -->
+  <section class="view" id="view-radio" aria-labelledby="radio-h"></section>
+
+  <!-- ============ 万花筒 ============ -->
+  <section class="view" id="view-kaleido" aria-labelledby="kaleido-h"></section>
+
+  <!-- ============ 命运老虎机 ============ -->
+  <section class="view" id="view-fate" aria-labelledby="fate-h"></section>
+
+  <!-- ============ 拖延统计 ============ -->
+  <section class="view" id="view-slack" aria-labelledby="slack-h"></section>
+
+  <!-- ============ 给未来写信 ============ -->
+  <section class="view" id="view-letter" aria-labelledby="letter-h"></section>
+
+  <!-- ============ 档案室 ============ -->
+  <section class="view" id="view-archive" aria-labelledby="archive-h"></section>
+
+  <!-- ============ 关于 ============ -->
+  <section class="view" id="view-about" aria-labelledby="about-h"></section>
+
+  <!-- ============ 迷路 ============ -->
+  <section class="view" id="view-lost" aria-labelledby="lost-h"></section>
+
+</main>
+
+<footer class="foot">
+  <div class="shell-foot">
+    <span class="mono small muted">忘忧小卖部 · 全部数据只存在你这台设备上 · 关门时间是明天</span>
+    <span class="foot-links">
+      <button class="foot-btn" data-act="export">导出存档</button>
+      <button class="foot-btn" data-act="import">导入存档</button>
+      <button class="foot-btn" data-act="wipe" class="danger">清空</button>
+    </span>
+  </div>
+</footer>
+
+<input type="file" id="import-file" accept="application/json,.json" hidden>
+
+<script src="js/core.js"></script>
+<script src="js/data.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app-home.js"></script>
+<script src="js/app-radio.js"></script>
+<script src="js/app-kaleido.js"></script>
+<script src="js/app-fate.js"></script>
+<script src="js/app-slack.js"></script>
+<script src="js/app-letter.js"></script>
+<script src="js/app-archive.js"></script>
+<script src="js/app-about.js"></script>
+<script src="js/boot.js"></script>
+</body>
+</html>
