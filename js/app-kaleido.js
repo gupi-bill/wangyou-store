@@ -330,7 +330,10 @@
     E = new Engine(document.createElement('canvas'));
     E.mode = saved.mode || 'confetti';
     E.p = P;
-    E.seed = U.pick(Math.random, (saved.seeds && saved.seeds.length ? saved.seeds : ['k' + randomSeed()]));
+    // 地址里带了种子就用它（#/kaleido?seed=abc123），
+    // 这样「同一个种子永远是同一张」就能靠链接分享出去。
+    var urlSeed = (MZ.resolveQuery() || {}).seed;
+    E.seed = urlSeed || U.pick(Math.random, (saved.seeds && saved.seeds.length ? saved.seeds : ['k' + randomSeed()]));
     E.angle = Math.random() * 6.28;
 
     function persist() {
@@ -358,6 +361,17 @@
       onclick: function () { spin(); }
     }, ['#' + E.seed]);
     wrap.appendChild(seedTag);
+    // 分享链接：把当前种子放进地址，别人打开看到同一张
+    var shareBtn = el('button', {
+      class: 'kal-share mono', type: 'button', title: '复制这个种子的链接',
+      'aria-label': '复制这个种子的链接',
+      onclick: function () {
+        var url = location.origin + location.pathname +
+                  '#/kaleido?seed=' + encodeURIComponent(E.seed);
+        MZ.ui.copyText(url, '谁打开都是这张');
+      }
+    }, ['🔗 分享这个种子']);
+    wrap.appendChild(shareBtn);
     root.appendChild(wrap);
 
     var toolbar = el('div', { class: 'kal-tools' });

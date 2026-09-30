@@ -1,0 +1,26 @@
+{
+  "name": "忘忧小卖部",
+  "short_name": "小卖部",
+  "description": "一家不打烊的小卖部。不卖东西，也不解决问题。",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b0d14",
+  "theme_color": "#0b0d14",
+  "categories": ["lifestyle", "entertainment"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%AE%3C/text%3E%3C/svg%3E",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    { "name": "深夜电台", "url": "./index.html#/radio" },
+    { "name": "万花筒",   "url": "./index.html#/kaleido" },
+    { "name": "档案室",   "url": "./index.html#/archive" }
+  ]
+}

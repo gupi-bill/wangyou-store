@@ -41,6 +41,30 @@
     MZ.toast('断网了', '不过没关系，这家店本来就不需要网', '🔌', 4000);
   });
 
+  /* ---- 空间告急：在丢东西之前先说一声 ---- */
+  (function () {
+    if (!store.ok) {
+      setTimeout(function () {
+        MZ.toast('存不下东西', '浏览器不让这家店用本地存储（无痕模式？）。' +
+          '这次关门，什么都不会留下。', '😶', 9000);
+      }, 1600);
+      return;
+    }
+    // 别每次开门都探 2MB，探一次就够，探完记下来下次再看
+    var lastCheck = store.get('spaceCheckedAt', 0);
+    var now = Date.now();
+    if (now - lastCheck < 6 * 3600 * 1000) return;   // 6 小时内不重复探
+    store.set('spaceCheckedAt', now);
+
+    setTimeout(function () {
+      var free = store.freeKB();
+      if (free >= 0 && free < 512) {                 // 不到 512KB
+        MZ.toast('地方不多了', '浏览器给的空间只剩 ' + free + ' KB 左右。' +
+          '去档案室「导出存档」把东西带走，会安全些。', '🧯', 10000);
+      }
+    }, 1800);
+  })();
+
   /* ---- 出错兜底，别让白屏吓着人 ---- */
   var seen = 0;
   window.addEventListener('error', function (e) {

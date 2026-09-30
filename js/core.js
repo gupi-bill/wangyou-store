@@ -9,6 +9,24 @@
   /* ---------------- 存储 ---------------- */
   var NS = 'moyou:v1:';
 
+  // 空间满了的时候别只弹一次 toast —— 同一轮里可能有几十次写入失败。
+  var warnedFull = false;
+
+  function quotaHit() {
+    if (warnedFull) return;
+    warnedFull = true;
+    try {
+      if (window.MZ && MZ.toast) {
+        MZ.toast('店要放不下了', '浏览器给的空间满了，新的东西存不进去。旧东西都还在。' +
+          '去档案室「导出存档」把东西带走，再清一清。', '🧯', 12000);
+      }
+    } catch (e) { /* 提示失败也别影响主流程 */ }
+  }
+
+  function clearWarned() {
+    warnedFull = false;
+  }
+
   var store = {
     ok: (function () {
       try {
@@ -29,9 +47,19 @@
 
     set: function (key, val) {
       if (!this.ok) return false;
-      try { localStorage.setItem(NS + key, JSON.stringify(val)); return true; }
-      catch (e) {
-        if (window.MZ) MZ.toast('存不下了', '本地空间满了，删点东西再来', '😶');
+      try {
+        localStorage.setItem(NS + key, JSON.stringify(val));
+        clearWarned();
+        return true;
+      } catch (e) {
+        // 空间满 / 隐私模式 / 配额策略 —— 一定要说出来，不能静默丢数据
+        if (e && (e.name === 'QuotaExceededError' ||
+                   e.name === 'NS_ERROR_DOM_QUOTA_REACHED' || e.code === 22 ||
+                   e.code === 1014)) {
+          quotaHit();
+        } else if (window.MZ && MZ.toast) {
+          MZ.toast('存不进去了', '不是空间满，是浏览器不让写。可能是隐私模式。', '😶');
+        }
         return false;
       }
     },
@@ -63,12 +91,46 @@
       if (!payload || payload.__app !== '忘忧小卖部' || !payload.data) {
         throw new Error('这不像是本店的存盘');
       }
-      Object.keys(payload.data).forEach(function (k) { store.set(k, payload.data[k]); });
-      return Object.keys(payload.data).length;
+      if (typeof payload.data !== 'object') {
+        throw new Error('存盘内容不太对');
+      }
+      // 先在内存里逐条试写，失败的记下来。
+      // 宁可只导进去一部分，也不要把原来好好的数据覆盖成坏的。
+      var bag = payload.data;
+      var okCount = 0, failed = [];
+      Object.keys(bag).forEach(function (k) {
+        if (store.set(k, bag[k]) === false) failed.push(k);
+        else okCount++;
+      });
+      store.lastImport = { ok: okCount, failed: failed };
+      if (okCount === 0 && failed.length) {
+        throw new Error('一条也没导进去，可能是空间满了。先导出备份，再清一清。');
+      }
+      return okCount;
     },
 
     wipe: function () {
       this.keys().forEach(function (k) { store.del(k); });
+    },
+
+    // 粗略估算还剩多少空间（KB）。用来在丢数据之前提醒，而不是事后。
+    freeKB: function () {
+      if (!this.ok) return -1;
+      try {
+        var probe = NS + '__probe';
+        var chunk = 'x'.repeat(4096);
+        var n = 0;
+        for (var i = 0; i < 512; i++) {          // 最多探到 2MB
+          localStorage.setItem(probe, chunk);
+          n++;
+        }
+        localStorage.removeItem(probe);
+        return n * 4;                            // 至少还能写这么多 KB
+      } catch (e) {
+        // 写不进去了：至少说明空间已经非常紧
+        try { localStorage.removeItem(NS + '__probe'); } catch (e2) {}
+        return 0;
+      }
     }
   };
 
@@ -310,6 +372,22 @@
     return name;
   }
 
+  // 取当前地址的 query，比如 #/kaleido?seed=abc123 → { seed: 'abc123' }
+  function resolveQuery() {
+    var out = {};
+    var raw = location.hash.split('?')[1];
+    if (!raw) return out;
+    raw.split('&').forEach(function (kv) {
+      if (!kv) return;
+      var i = kv.indexOf('=');
+      var k = i < 0 ? kv : kv.slice(0, i);
+      var v = i < 0 ? '' : kv.slice(i + 1);
+      try { out[decodeURIComponent(k)] = decodeURIComponent(v); }
+      catch (e) { out[k] = v; }   // 编码坏了也别炸
+    });
+    return out;
+  }
+
   function go(name) {
     if (location.hash === '#/' + name) { paint(name); return; }
     location.hash = '#/' + name;
@@ -463,7 +541,7 @@
   window.MZ = {
     store: store, bus: bus, toast: toast, ding: ding, audio: audio,
     grant: grant, hasBadge: hasBadge, badgeList: badgeList, BADGES: BADGES,
-    route: route, go: go, paint: paint, resolve: resolve,
+    route: route, go: go, paint: paint, resolve: resolve, resolveQuery: resolveQuery,
     bumpVisit: bumpVisit, streak: streak, markToday: markToday,
     dailyPair: dailyPair, greeting: greeting, murmur: murmur, whisper: whisper,
     util: {

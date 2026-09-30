@@ -82,10 +82,17 @@
     fr.onload = function () {
       try {
         var n = store.importAll(JSON.parse(fr.result));
-        MZ.toast('存档已导入', n + ' 项数据回来了', '📥');
-        setTimeout(function () { location.reload(); }, 900);
+        var bad = (store.lastImport && store.lastImport.failed) || [];
+        if (bad.length) {
+          // 部分失败要如实说，不能装作全好了
+          MZ.toast('导进去一部分', n + ' 项回来了，' + bad.length +
+            ' 项没进去（多半是空间满了）。原来那些没被动。', '🧯', 9000);
+        } else {
+          MZ.toast('存档已导入', n + ' 项数据回来了', '📥');
+        }
+        setTimeout(function () { location.reload(); }, 1200);
       } catch (e) {
-        MZ.toast('导不进去', e.message, '🧯', 5000);
+        MZ.toast('导不进去', e.message, '🧯', 6000);
       }
     };
     fr.onerror = function () { MZ.toast('读不了这个文件', '', '🧯'); };
@@ -212,23 +219,36 @@
   }
 
   /* ---------------- 复制按钮 ---------------- */
+  // 复制一段文字。优先用剪贴板 API，file:// 或老浏览器退回 execCommand。
+  // 返回 Promise<boolean>，方便调用方自己决定提示什么。
+  function copyText(t, label) {
+    function fallback() {
+      try {
+        var ta = el('textarea', { style: 'position:fixed;opacity:0' });
+        ta.value = t; document.body.appendChild(ta); ta.select();
+        var ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        if (ok) MZ.toast('复制好了', label || '', '📋', 2200);
+        else MZ.toast('复制失败', '手动选中吧', '😶', 4000);
+        return ok;
+      } catch (e) {
+        MZ.toast('复制失败', '手动选中吧', '😶', 4000);
+        return false;
+      }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(t).then(function () {
+        MZ.toast('复制好了', label || '', '📋', 2400);
+        return true;
+      }, function () { return fallback(); });
+    }
+    return Promise.resolve(fallback());
+  }
+
   function copyBtn(getText, label) {
     return el('button', {
       class: 'btn sm', type: 'button',
-      onclick: function () {
-        var t = getText();
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(t).then(function () {
-            MZ.toast('复制好了', label || '', '📋', 2400);
-          }, function () { fallback(); });
-        } else fallback();
-        function fallback() {
-          var ta = el('textarea', { style: 'position:fixed;opacity:0' });
-          ta.value = t; document.body.appendChild(ta); ta.select();
-          try { document.execCommand('copy'); MZ.toast('复制好了', '', '📋', 2200); } catch (e) { MZ.toast('复制失败', '手动选中吧', '😶'); }
-          document.body.removeChild(ta);
-        }
-      }
+      onclick: function () { copyText(getText(), label); }
     }, ['复制']);
   }
 
@@ -259,6 +279,6 @@
     countUp: countUp, badgeWall: badgeWall, pageHead: pageHead, head: head,
     exportSave: exportSave, importSave: importSave, wipeAll: wipeAll,
     bindFooter: bindFooter, bindMascot: bindMascot, bindKeys: bindKeys,
-    bars: bars, ring: ring, copyBtn: copyBtn, confirmBtn: confirmBtn
+    bars: bars, ring: ring, copyBtn: copyBtn, copyText: copyText, confirmBtn: confirmBtn
   };
 })();

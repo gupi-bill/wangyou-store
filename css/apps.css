@@ -258,6 +258,29 @@
 }
 .kal-seed:hover { color: var(--lamp); border-color: var(--line-hot); background: rgba(255,180,105,.12); }
 
+/* 分享种子：贴在种子标签右边，同一套视觉，别喧宾夺主 */
+.kal-share {
+  position: absolute;
+  right: 14px; bottom: 12px;
+  padding: 5px 12px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-mute);
+  font-size: 11.5px;
+  letter-spacing: .06em;
+  cursor: pointer;
+  opacity: .55;
+  transition: color .2s, border-color .2s, background .2s, opacity .2s;
+}
+.kal-share:hover,
+.kal-share:focus-visible {
+  opacity: 1;
+  color: var(--lamp);
+  border-color: var(--line-hot);
+  background: rgba(255,180,105,.10);
+}
+
 .kal-tools {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   margin-top: 14px;
