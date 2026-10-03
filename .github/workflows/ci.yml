@@ -1,0 +1,44 @@
+# 忘忧小卖部 · CI
+#
+# 这个项目没有 package.json，测试用 Python 标准库跑（test.py）。
+# 所以 CI 也只需要一个 Python —— 没有 npm install，没有矩阵。
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # 装 node 只为了 node --check（语法检查），
+      # 以及最后那道「core.js 能不能在空 DOM 里加载」的探测。
+      # 没有 node 的话测试会自动跳过这两项并在结尾提示。
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 冒烟测试（88 项）
+        run: ./test.sh
+
+      - name: 确认核心承诺
+        run: |
+          # 零网络请求是这家店最强的承诺，单独再查一遍，
+          # 避免有人改了 test.py 里的规则
+          if grep -rnE 'https?://[a-z0-9.-]+\.[a-z]{2,}' \
+               --include='*.js' --include='*.html' --include='*.css' \
+               . | grep -vE '^\./(docs|README|CHANGELOG|碎碎念|不要删我)' \
+               | grep -vE 'localhost|127\.0\.0\.1|example\.com|w3\.org' \
+             then
+            echo "::error::代码里出现了外部网络引用，违背零网络承诺"
+            exit 1
+          fi
+          echo "✓ 零网络请求"
